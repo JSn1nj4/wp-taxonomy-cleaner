@@ -1,0 +1,30 @@
+name: taxonomy-manager
+recipe: wordpress
+config:
+  php: '8.0'
+  webroot: .
+
+proxy:
+  mail:
+    - mail.taxonomy-manager.lndo.site
+
+services:
+  appserver:
+    ssl: true
+    build:
+      - mkdir -p /app/wp-content/plugins
+      - [ ! -f /tmp/wordpress.zip ] && wget -O /tmp/wordpress.zip https://wordpress.org/latest.zip
+      - [ -f /tmp/wordpress.zip ] && [ ! -f /app/wp-config.php ] && unzip /tmp/wordress.zip /app && cp /app/wp-config{-example,}.php && echo "WORDPRESS CONFIG CREATED"
+    overrides:
+      # use /app for WordPress and mount/link my plugin another way
+      app_mount: false
+      volumes:
+        - ./:/app/wp-content/plugins/taxonomy-manager
+
+  database:
+    portforward: 33078
+
+  mail:
+    type: mailhog
+    hogfrom:
+      - appserver
